@@ -10,15 +10,23 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import StaffForm from "@/components/StaffForm";
+import ServiceForm from "@/components/ServiceForm";
+import AppointmentCalendar from "@/components/AppointmentCalendar";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [staffFormOpen, setStaffFormOpen] = useState(false);
+  const [serviceFormOpen, setServiceFormOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [editingService, setEditingService] = useState(null);
 
   const stats = [
     {
@@ -177,6 +185,26 @@ const Admin = () => {
     );
   };
 
+  const handleStaffSave = (data: any) => {
+    console.log('Staff saved:', data);
+    // Here you would save to your backend
+  };
+
+  const handleServiceSave = (data: any) => {
+    console.log('Service saved:', data);
+    // Here you would save to your backend
+  };
+
+  const openEditStaff = (staff: any) => {
+    setEditingStaff(staff);
+    setStaffFormOpen(true);
+  };
+
+  const openEditService = (service: any) => {
+    setEditingService(service);
+    setServiceFormOpen(true);
+  };
+
   return (
     <div className="min-h-screen gradient-hero">
       {/* Header */}
@@ -194,7 +222,11 @@ const Admin = () => {
                 <p className="text-sm text-muted-foreground">Barbearia Elite</p>
               </div>
             </div>
-            <Button variant="outline" className="transition-spring hover:scale-105">
+            <Button 
+              variant="outline" 
+              className="transition-spring hover:scale-105"
+              onClick={() => setStaffFormOpen(true)}
+            >
               <UserPlus className="w-4 h-4 mr-2" />
               Novo Funcionário
             </Button>
@@ -213,76 +245,135 @@ const Admin = () => {
 
           {/* Dashboard */}
           <TabsContent value="dashboard" className="space-y-8">
-            {/* Stats Grid */}
+            {/* Stats Grid with Enhanced Analytics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                  <Card key={index} className="gradient-card shadow-card animate-scale-in">
+                  <Card key={index} className="gradient-card shadow-card animate-scale-in relative overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-muted-foreground mb-1">{stat.title}</p>
                           <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                          <p className="text-sm text-success">{stat.change}</p>
+                          <div className="flex items-center space-x-1 mt-1">
+                            <TrendingUp className="w-3 h-3 text-success" />
+                            <p className="text-sm text-success">{stat.change}</p>
+                          </div>
                         </div>
                         <div className={`p-3 rounded-lg bg-primary/10 ${stat.color}`}>
                           <Icon className="w-6 h-6" />
                         </div>
                       </div>
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary-glow opacity-60"></div>
                     </CardContent>
                   </Card>
                 );
               })}
             </div>
 
-            {/* Today's Appointments */}
-            <Card className="gradient-card shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Agendamentos de Hoje</CardTitle>
-                  <CardDescription>18 de Agosto de 2025</CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Ver Calendário
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {todayAppointments.map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className="flex items-center justify-between p-4 border border-border rounded-lg transition-smooth hover:border-primary/50"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-16 text-center">
-                          <div className="text-lg font-semibold text-primary">{appointment.time}</div>
-                          <div className="text-xs text-muted-foreground">{appointment.duration}min</div>
+            {/* Enhanced Today's Schedule */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card className="gradient-card shadow-card">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle>Próximos Agendamentos</CardTitle>
+                      <CardDescription>Hoje, 18 de Agosto de 2025</CardDescription>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setActiveTab("appointments")}>
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Ver Calendário
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {todayAppointments.map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          className="flex items-center justify-between p-4 border border-border rounded-lg transition-smooth hover:border-primary/50 hover:shadow-glow"
+                        >
+                          <div className="flex items-center space-x-4">
+                            <div className="w-16 text-center">
+                              <div className="text-lg font-semibold text-primary">{appointment.time}</div>
+                              <div className="text-xs text-muted-foreground">{appointment.duration}min</div>
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-foreground">{appointment.customer}</h4>
+                              <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                              <p className="text-xs text-muted-foreground">com {appointment.barber}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <span className="font-semibold text-primary">R$ {appointment.price}</span>
+                            {getStatusBadge(appointment.status)}
+                            <div className="flex space-x-1">
+                              <Button variant="ghost" size="sm" className="transition-spring hover:scale-105">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="transition-spring hover:scale-105">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-foreground">{appointment.customer}</h4>
-                          <p className="text-sm text-muted-foreground">{appointment.service}</p>
-                          <p className="text-xs text-muted-foreground">com {appointment.barber}</p>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Quick Stats Sidebar */}
+              <div className="space-y-6">
+                <Card className="gradient-card shadow-card">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Status da Equipe</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {staff.slice(0, 3).map((member) => (
+                      <div key={member.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl">{member.avatar}</span>
+                          <div>
+                            <p className="font-medium text-foreground text-sm">{member.name}</p>
+                            <p className="text-xs text-muted-foreground">{member.appointmentsToday} agendamentos</p>
+                          </div>
                         </div>
+                        {getStatusBadge(member.status)}
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="font-semibold text-primary">R$ {appointment.price}</span>
-                        {getStatusBadge(appointment.status)}
-                        <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                <Card className="gradient-card shadow-card">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Resumo Financeiro</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Hoje:</span>
+                        <span className="font-semibold text-primary">R$ 465</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Semana:</span>
+                        <span className="font-semibold text-foreground">R$ 2.340</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Mês:</span>
+                        <span className="font-semibold text-foreground">R$ 8.450</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="pt-4 border-t border-border">
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div className="bg-primary h-2 rounded-full" style={{ width: "68%" }}></div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">68% da meta mensal</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Staff Management */}
@@ -292,7 +383,13 @@ const Admin = () => {
                 <h2 className="text-2xl font-display font-semibold text-foreground">Funcionários</h2>
                 <p className="text-muted-foreground">Gerencie sua equipe</p>
               </div>
-              <Button className="gradient-primary shadow-elegant">
+              <Button 
+                className="gradient-primary shadow-elegant"
+                onClick={() => {
+                  setEditingStaff(null);
+                  setStaffFormOpen(true);
+                }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Funcionário
               </Button>
@@ -330,7 +427,12 @@ const Admin = () => {
                     </div>
 
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => openEditStaff(member)}
+                      >
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
                       </Button>
@@ -352,7 +454,13 @@ const Admin = () => {
                 <h2 className="text-2xl font-display font-semibold text-foreground">Serviços</h2>
                 <p className="text-muted-foreground">Gerencie os serviços oferecidos</p>
               </div>
-              <Button className="gradient-primary shadow-elegant">
+              <Button 
+                className="gradient-primary shadow-elegant"
+                onClick={() => {
+                  setEditingService(null);
+                  setServiceFormOpen(true);
+                }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Serviço
               </Button>
@@ -387,7 +495,11 @@ const Admin = () => {
                         </div>
                         {getStatusBadge(service.status)}
                         <div className="flex space-x-1">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => openEditService(service)}
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -406,8 +518,8 @@ const Admin = () => {
           <TabsContent value="appointments" className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-display font-semibold text-foreground">Agendamentos</h2>
-                <p className="text-muted-foreground">Gerencie todos os agendamentos</p>
+                <h2 className="text-2xl font-display font-semibold text-foreground">Agenda</h2>
+                <p className="text-muted-foreground">Visualize e gerencie todos os agendamentos</p>
               </div>
               <Button className="gradient-primary shadow-elegant">
                 <Plus className="w-4 h-4 mr-2" />
@@ -415,24 +527,30 @@ const Admin = () => {
               </Button>
             </div>
 
-            <Card className="gradient-card shadow-card">
-              <CardContent className="p-6">
-                <div className="text-center py-12">
-                  <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    Calendário de Agendamentos
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    Visualize e gerencie todos os agendamentos em uma interface de calendário completa
-                  </p>
-                  <Button variant="outline">
-                    Ver Calendário Completo
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <AppointmentCalendar />
           </TabsContent>
         </Tabs>
+
+        {/* Modals */}
+        <StaffForm
+          isOpen={staffFormOpen}
+          onClose={() => {
+            setStaffFormOpen(false);
+            setEditingStaff(null);
+          }}
+          staff={editingStaff}
+          onSave={handleStaffSave}
+        />
+
+        <ServiceForm
+          isOpen={serviceFormOpen}
+          onClose={() => {
+            setServiceFormOpen(false);
+            setEditingService(null);
+          }}
+          service={editingService}
+          onSave={handleServiceSave}
+        />
       </main>
     </div>
   );
