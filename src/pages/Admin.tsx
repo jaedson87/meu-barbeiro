@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 import { 
   Users, 
   Scissors, 
@@ -11,22 +13,39 @@ import {
   Edit,
   Trash2,
   Eye,
-  TrendingUp
+  TrendingUp,
+  Edit2,
+  Share2,
+  Copy,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 import StaffForm from "@/components/StaffForm";
 import ServiceForm from "@/components/ServiceForm";
 import AppointmentCalendar from "@/components/AppointmentCalendar";
 
 const Admin = () => {
+  const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffFormOpen, setStaffFormOpen] = useState(false);
   const [serviceFormOpen, setServiceFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [editingService, setEditingService] = useState(null);
+  const [barbershopName, setBarbershopName] = useState(user?.barbershopName || 'Barbearia Elite');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  if (!user || user.role !== 'owner') {
+    return <Navigate to="/login" replace />;
+  }
 
   const stats = [
     {
@@ -205,6 +224,36 @@ const Admin = () => {
     setServiceFormOpen(true);
   };
 
+  const handleEditName = () => {
+    setTempName(barbershopName);
+    setIsEditingName(true);
+  };
+
+  const handleSaveName = () => {
+    setBarbershopName(tempName);
+    setIsEditingName(false);
+    toast({
+      title: "Nome atualizado!",
+      description: "O nome da barbearia foi alterado com sucesso."
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setTempName('');
+    setIsEditingName(false);
+  };
+
+  const handleShareLink = () => {
+    const shareUrl = `${window.location.origin}/book/barbearia-central`;
+    navigator.clipboard.writeText(shareUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+    toast({
+      title: "Link copiado!",
+      description: "O link de agendamento foi copiado para a área de transferência."
+    });
+  };
+
   return (
     <div className="min-h-screen gradient-hero">
       {/* Header */}
@@ -213,26 +262,82 @@ const Admin = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-                <Settings className="w-5 h-5 text-primary-foreground" />
+                <Scissors className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-display font-semibold text-foreground">
-                  Painel Administrativo
-                </h1>
-                <p className="text-sm text-muted-foreground">Barbearia Elite</p>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-display font-semibold text-foreground">
+                    Painel Administrativo
+                  </h1>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEditName}
+                    className="h-6 w-6 p-0 transition-spring hover:scale-105"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">{barbershopName}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShareLink}
+                    className="h-6 p-1 text-xs transition-spring hover:scale-105"
+                  >
+                    {linkCopied ? (
+                      <Check className="w-3 h-3 mr-1" />
+                    ) : (
+                      <Share2 className="w-3 h-3 mr-1" />
+                    )}
+                    {linkCopied ? 'Copiado!' : 'Compartilhar'}
+                  </Button>
+                </div>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              className="transition-spring hover:scale-105"
-              onClick={() => setStaffFormOpen(true)}
-            >
-              <UserPlus className="w-4 h-4 mr-2" />
-              Novo Funcionário
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Olá, {user.name}
+              </span>
+              <Button variant="outline" onClick={logout}>
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Edit Name Dialog */}
+      <Dialog open={isEditingName} onOpenChange={setIsEditingName}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Nome da Barbearia</DialogTitle>
+            <DialogDescription>
+              Digite o novo nome para sua barbearia
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="barbershop-name">Nome da Barbearia</Label>
+              <Input
+                id="barbershop-name"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                placeholder="Digite o nome da barbearia"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSaveName} disabled={!tempName.trim()}>
+                Salvar
+              </Button>
+              <Button variant="outline" onClick={handleCancelEdit}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
