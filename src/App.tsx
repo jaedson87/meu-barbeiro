@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import SuperAdmin from "./pages/SuperAdmin";
 import TestNavigation from "./components/TestNavigation";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -26,8 +27,16 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/test" element={<TestNavigation />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/super-admin" element={<SuperAdmin />} />
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="owner">
+                <Admin />
+              </ProtectedRoute>
+            } />
+            <Route path="/super-admin" element={
+              <ProtectedRoute requiredRole="super_admin">
+                <SuperAdmin />
+              </ProtectedRoute>
+            } />
             <Route path="/booking" element={<BookingForm />} />
             <Route path="/book/:barbershopSlug" element={<BookingForm />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
