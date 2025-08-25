@@ -32,19 +32,19 @@ import ServiceForm from "@/components/ServiceForm";
 import AppointmentCalendar from "@/components/AppointmentCalendar";
 
 const Admin = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [staffFormOpen, setStaffFormOpen] = useState(false);
   const [serviceFormOpen, setServiceFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
   const [editingService, setEditingService] = useState(null);
-  const [barbershopName, setBarbershopName] = useState(user?.barbershopName || 'Barbearia Elite');
+  const [barbershopName, setBarbershopName] = useState(profile?.full_name || 'Barbearia Elite');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
 
-  if (!user || user.role !== 'owner') {
-    return <Navigate to="/login" replace />;
+  if (!user || !profile || profile.role !== 'owner') {
+    return <Navigate to="/auth" replace />;
   }
 
   const stats = [
@@ -298,9 +298,9 @@ const Admin = () => {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                Olá, {user.name}
+                Olá, {profile?.full_name}
               </span>
-              <Button variant="outline" onClick={logout}>
+              <Button variant="outline" onClick={signOut}>
                 Sair
               </Button>
             </div>

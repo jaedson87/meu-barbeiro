@@ -105,7 +105,7 @@ const Home = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/auth")}
                 className="transition-spring hover:scale-105"
               >
                 <Settings className="w-4 h-4" />

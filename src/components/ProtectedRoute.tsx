@@ -11,9 +11,9 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ 
   children, 
   requiredRole, 
-  redirectTo = '/login' 
+  redirectTo = '/auth' 
 }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -23,11 +23,11 @@ const ProtectedRoute = ({
     );
   }
 
-  if (!user) {
+  if (!user || !profile) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
+  if (requiredRole && profile.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }
 

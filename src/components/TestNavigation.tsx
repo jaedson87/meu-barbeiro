@@ -6,7 +6,7 @@ import { Home, LogIn, Settings, UserCog, Calendar } from "lucide-react";
 
 const TestNavigation = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const routes = [
     {
@@ -50,7 +50,7 @@ const TestNavigation = () => {
     if (route.public) return true;
     if (!route.requiresAuth) return true;
     if (!user) return false;
-    return user.role === route.requiresAuth;
+    return profile?.role === route.requiresAuth;
   };
 
   return (
@@ -58,7 +58,7 @@ const TestNavigation = () => {
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Sistema de Barbearia - Navegação de Teste</h2>
         <p className="text-muted-foreground">
-          {user ? `Logado como: ${user.name} (${user.role})` : "Não autenticado"}
+          {user ? `Logado como: ${profile?.full_name} (${profile?.role})` : "Não autenticado"}
         </p>
       </div>
 

@@ -20,7 +20,7 @@ interface Barbershop {
 }
 
 const SuperAdmin = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [barbershops, setBarbershops] = useState<Barbershop[]>([
     {
       id: '1',
@@ -48,8 +48,8 @@ const SuperAdmin = () => {
     ownerPassword: ''
   });
 
-  if (!user || user.role !== 'super_admin') {
-    return <Navigate to="/login" replace />;
+  if (!user || !profile || profile.role !== 'super_admin') {
+    return <Navigate to="/auth" replace />;
   }
 
   const handleCreateBarbershop = (e: React.FormEvent) => {
@@ -101,9 +101,9 @@ const SuperAdmin = () => {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                Bem-vindo, {user.name}
+                Bem-vindo, {profile?.full_name}
               </span>
-              <Button variant="outline" onClick={logout}>
+              <Button variant="outline" onClick={signOut}>
                 Sair
               </Button>
             </div>
