@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Clock, Users, Scissors, Star, MapPin, Phone, Settings } from "lucide-react";
+import { Calendar, Clock, Users, Scissors, Star, MapPin, Phone, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import heroImage from "@/assets/barbershop-hero.jpg";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -105,10 +107,11 @@ const Home = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/auth")}
+                onClick={signOut}
                 className="transition-spring hover:scale-105"
+                title="Sair"
               >
-                <Settings className="w-4 h-4" />
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
