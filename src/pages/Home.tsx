@@ -13,6 +13,11 @@ const Home = () => {
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
   const barbers = [
     {
       id: "1",
@@ -107,7 +112,7 @@ const Home = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={signOut}
+                onClick={handleSignOut}
                 className="transition-spring hover:scale-105"
                 title="Sair"
               >
