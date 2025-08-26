@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";  
-import { Calendar, Clock, Users, Scissors, Star, MapPin, Phone, LogOut } from "lucide-react";
+import { Calendar, Clock, Users, Scissors, Star, MapPin, Phone, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import heroImage from "@/assets/barbershop-hero.jpg";
 
 const Home = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -109,6 +109,28 @@ const Home = () => {
                 <Phone className="w-4 h-4" />
                 <span>(11) 99999-9999</span>
               </div>
+              {profile?.role === 'super_admin' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/super-admin")}
+                  className="transition-spring hover:scale-105"
+                  title="Painel Super Admin"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
+              {profile?.role === 'owner' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="transition-spring hover:scale-105"
+                  title="Painel Admin"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
