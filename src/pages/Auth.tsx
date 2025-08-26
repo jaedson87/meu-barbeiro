@@ -69,6 +69,39 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const createTestAccounts = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Criar conta de Super Admin
+      const adminResult = await signUp('admin@sistema.com', '123456', 'Super Admin', 'super_admin');
+      
+      // Criar conta de Owner
+      const ownerResult = await signUp('dono@barbearia.com', '123456', 'Dono da Barbearia', 'owner');
+      
+      if (adminResult.error || ownerResult.error) {
+        toast({
+          title: 'Erro ao criar contas de teste',
+          description: 'Algumas contas podem já existir ou houve um erro.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Contas de teste criadas!',
+          description: 'As contas admin@sistema.com e dono@barbearia.com foram criadas com sucesso.',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Erro ao criar contas de teste',
+        description: 'Ocorreu um erro inesperado.',
+        variant: 'destructive',
+      });
+    }
+    
+    setIsLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
       <Card className="w-full max-w-md">
@@ -114,10 +147,19 @@ const Auth = () => {
                 </Button>
               </form>
               
-              <div className="text-center text-sm text-muted-foreground border-t pt-4">
+              <div className="text-center text-sm text-muted-foreground border-t pt-4 space-y-3">
                 <p>Contas de teste:</p>
                 <p><strong>Super Admin:</strong> admin@sistema.com / 123456</p>
                 <p><strong>Dono:</strong> dono@barbearia.com / 123456</p>
+                <Button 
+                  onClick={createTestAccounts} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={isLoading}
+                  className="w-full"
+                >
+                  {isLoading ? 'Criando...' : 'Criar Contas de Teste'}
+                </Button>
               </div>
             </TabsContent>
             
