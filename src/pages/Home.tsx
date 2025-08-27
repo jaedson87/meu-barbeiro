@@ -1,341 +1,212 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";  
-import { Calendar, Clock, Users, Scissors, Star, MapPin, Phone, LogOut, Settings } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Scissors, Clock, Users, Star, MapPin, Phone, Search } from "lucide-react";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/barbershop-hero.jpg";
 
 const Home = () => {
-  const navigate = useNavigate();
-  const { signOut, profile } = useAuth();
-  const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [barbershops, setBarbershops] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
+  useEffect(() => {
+    fetchBarbershops();
+  }, []);
+
+  const fetchBarbershops = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('barbershops')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar barbearias:', error);
+        return;
+      }
+
+      setBarbershops(data || []);
+    } catch (error) {
+      console.error('Erro:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const barbers = [
-    {
-      id: "1",
-      name: "João Silva",
-      avatar: "👨‍💼",
-      rating: 4.9,
-      specialties: ["Corte Clássico", "Barba", "Bigode"]
-    },
-    {
-      id: "2", 
-      name: "Carlos Santos",
-      avatar: "👨‍🎨",
-      rating: 4.8,
-      specialties: ["Corte Moderno", "Degradê", "Sobrancelha"]
-    },
-    {
-      id: "3",
-      name: "Miguel Oliveira", 
-      avatar: "👨‍🔧",
-      rating: 5.0,
-      specialties: ["Corte + Barba", "Tratamentos", "Penteados"]
-    }
-  ];
-
-  const services = [
-    {
-      id: "1",
-      name: "Corte de Cabelo",
-      duration: 30,
-      price: 40,
-      description: "Corte profissional personalizado"
-    },
-    {
-      id: "2", 
-      name: "Barba Completa",
-      duration: 30,
-      price: 35,
-      description: "Aparar e modelar a barba"
-    },
-    {
-      id: "3",
-      name: "Corte + Barba",
-      duration: 60,
-      price: 70,
-      description: "Pacote completo de cuidados"
-    },
-    {
-      id: "4",
-      name: "Sobrancelha",
-      duration: 15,
-      price: 20,
-      description: "Design e aparar sobrancelhas"
-    }
-  ];
-
-  const availableSlots = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00"
-  ];
+  const filteredBarbershops = barbershops.filter(barbershop =>
+    barbershop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (barbershop.address && barbershop.address.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
-    <div className="min-h-screen gradient-hero relative">
-      {/* Hero Background */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {/* Header */}
-      <header className="relative z-10 border-b border-border/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center">
-                <Scissors className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-display font-semibold text-foreground">
-                  Barbearia Elite
-                </h1>
-                <p className="text-sm text-muted-foreground">Tradição e modernidade</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <div className="hidden md:flex items-center space-x-2">
-                <MapPin className="w-4 h-4" />
-                <span>Rua das Flores, 123</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span>(11) 99999-9999</span>
-              </div>
-              {profile?.role === 'super_admin' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/super-admin")}
-                  className="transition-spring hover:scale-105"
-                  title="Painel Super Admin"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-              )}
-              {profile?.role === 'owner' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/admin")}
-                  className="transition-spring hover:scale-105"
-                  title="Painel Admin"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="transition-spring hover:scale-105"
-                title="Sair"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            </div>
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Scissors className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold">BarberSystem</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Link to="/auth">
+              <Button variant="ghost">Entrar</Button>
+            </Link>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Seleção de Barbeiro */}
-          <Card className="gradient-card shadow-card animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-primary" />
-                <span>Escolha seu Barbeiro</span>
-              </CardTitle>
-              <CardDescription>
-                Selecione o profissional de sua preferência
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {barbers.map((barber) => (
-                <div
-                  key={barber.id}
-                  className={`p-4 rounded-lg border transition-smooth cursor-pointer ${
-                    selectedBarber === barber.id
-                      ? "border-primary shadow-glow bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => setSelectedBarber(barber.id)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{barber.avatar}</div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium text-foreground">{barber.name}</h3>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 fill-primary text-primary" />
-                          <span className="text-sm font-medium">{barber.rating}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {barber.specialties.join(" • ")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Seleção de Serviço */}
-          <Card className="gradient-card shadow-card animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Scissors className="w-5 h-5 text-primary" />
-                <span>Escolha o Serviço</span>
-              </CardTitle>
-              <CardDescription>
-                Selecione o tipo de atendimento desejado
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {services.map((service) => (
-                <div
-                  key={service.id}
-                  className={`p-4 rounded-lg border transition-smooth cursor-pointer ${
-                    selectedService === service.id
-                      ? "border-primary shadow-glow bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                  onClick={() => setSelectedService(service.id)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-foreground">{service.name}</h3>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {service.description}
-                      </p>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <div className="flex items-center space-x-1 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span>{service.duration} min</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-semibold text-primary">
-                        R$ {service.price}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Horários Disponíveis */}
-          <Card className="gradient-card shadow-card animate-fade-in">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5 text-primary" />
-                <span>Horários Disponíveis</span>
-              </CardTitle>
-              <CardDescription>
-                Hoje, 18 de Agosto de 2025
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {!selectedBarber || !selectedService ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    Selecione um barbeiro e serviço para ver os horários disponíveis
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableSlots.map((slot) => (
-                      <Button
-                        key={slot}
-                        variant={selectedTime === slot ? "default" : "outline"}
-                        size="sm"
-                        className="transition-spring hover:scale-105"
-                        onClick={() => setSelectedTime(slot)}
-                      >
-                        {slot}
-                      </Button>
-                    ))}
-                  </div>
-                  <Button 
-                    className="w-full gradient-primary shadow-elegant transition-spring hover:scale-105"
-                    disabled={!selectedTime}
-                    onClick={() => navigate("/booking")}
-                  >
-                    Continuar Agendamento
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Hero Section */}
+      <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        >
+          <div className="absolute inset-0 bg-black/50" />
         </div>
+        
+        <div className="relative z-10 text-center text-white px-4 max-w-4xl">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6">
+            Encontre sua Barbearia Ideal
+          </h2>
+          <p className="text-xl md:text-2xl mb-8">
+            Agende seus cortes com os melhores profissionais
+          </p>
+        </div>
+      </section>
 
-        {/* Info Section */}
-        <section className="mt-12 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="gradient-card shadow-card text-center animate-slide-up">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-full gradient-primary mx-auto mb-4 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-primary-foreground" />
+      {/* Search Section */}
+      <section className="py-8 px-4 bg-background">
+        <div className="container mx-auto">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar barbearias..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <h3 className="font-semibold mb-2">Horário de Funcionamento</h3>
-              <p className="text-sm text-muted-foreground">
-                Seg - Sáb: 09:00 - 18:00<br />
-                Dom: Fechado
-              </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <Card className="gradient-card shadow-card text-center animate-slide-up">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-full gradient-primary mx-auto mb-4 flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h3 className="font-semibold mb-2">Localização</h3>
-              <p className="text-sm text-muted-foreground">
-                Rua das Flores, 123<br />
-                Centro, São Paulo - SP
-              </p>
-            </CardContent>
-          </Card>
+      {/* Barbershops Grid */}
+      <section className="py-8 px-4">
+        <div className="container mx-auto">
+          <h3 className="text-2xl font-bold mb-6">Barbearias Disponíveis</h3>
+          
+          {loading ? (
+            <div className="text-center py-8">
+              <p>Carregando barbearias...</p>
+            </div>
+          ) : filteredBarbershops.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhuma barbearia encontrada.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredBarbershops.map((barbershop) => (
+                <Card key={barbershop.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{barbershop.name}</CardTitle>
+                      <Badge variant="secondary">Aberto</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {barbershop.address && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4" />
+                        <span>{barbershop.address}</span>
+                      </div>
+                    )}
+                    {barbershop.phone && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-4 w-4" />
+                        <span>{barbershop.phone}</span>
+                      </div>
+                    )}
+                    <Link to={`/book/${barbershop.slug}`}>
+                      <Button className="w-full">
+                        Agendar Agora
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
-          <Card className="gradient-card shadow-card text-center animate-slide-up">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-full gradient-primary mx-auto mb-4 flex items-center justify-center">
-                <Phone className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h3 className="font-semibold mb-2">Contato</h3>
-              <p className="text-sm text-muted-foreground">
-                (11) 99999-9999<br />
-                WhatsApp disponível
-              </p>
-            </CardContent>
-          </Card>
+      {/* Features Section */}
+      <section className="py-20 px-4 bg-muted/50">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold mb-4">
+              Por que escolher o BarberSystem?
+            </h3>
+          </div>
 
-          <Card className="gradient-card shadow-card text-center animate-slide-up">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 rounded-full gradient-primary mx-auto mb-4 flex items-center justify-center">
-                <Star className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <h3 className="font-semibold mb-2">Avaliação</h3>
-              <p className="text-sm text-muted-foreground">
-                4.9 ★★★★★<br />
-                +500 clientes satisfeitos
-              </p>
-            </CardContent>
-          </Card>
-        </section>
-      </main>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center">
+              <CardHeader>
+                <Clock className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Agendamento Rápido</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Agende seu horário em poucos cliques
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Profissionais Qualificados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Barbeiros experientes e especializados
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center">
+              <CardHeader>
+                <Star className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Variedade de Serviços</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Cortes, barba, bigode e muito mais
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-background border-t py-8 px-4">
+        <div className="container mx-auto text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <Scissors className="h-6 w-6 text-primary" />
+            <h4 className="text-lg font-semibold">BarberSystem</h4>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            © 2024 BarberSystem. Todos os direitos reservados.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import BookingForm from "./pages/BookingForm";
+import UserBooking from "./pages/UserBooking";
 import Auth from "./pages/Auth";
 import SuperAdminReal from "./pages/SuperAdminReal";
 import TestNavigation from "./components/TestNavigation";
@@ -38,7 +39,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/booking" element={<BookingForm />} />
-            <Route path="/book/:barbershopSlug" element={<BookingForm />} />
+            <Route path="/book/:barbershopSlug" element={<UserBooking />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
