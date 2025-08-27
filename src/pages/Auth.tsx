@@ -24,6 +24,31 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  // Criar usuário admin automaticamente quando a página carregar
+  useEffect(() => {
+    const createAdminIfNotExists = async () => {
+      try {
+        // Tentar fazer login silencioso para verificar se o admin existe
+        const { error } = await signIn('admin@sistema.com', '123456');
+        if (error) {
+          // Se o login falhou, criar o usuário admin
+          console.log('Criando usuário admin...');
+          const { error: signUpError } = await signUp('admin@sistema.com', '123456', 'Super Admin', 'super_admin');
+          if (!signUpError) {
+            toast({
+              title: 'Usuário admin criado!',
+              description: 'O usuário admin@sistema.com foi criado automaticamente.',
+            });
+          }
+        }
+      } catch (error) {
+        console.log('Erro ao verificar/criar admin:', error);
+      }
+    };
+
+    createAdminIfNotExists();
+  }, []);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
